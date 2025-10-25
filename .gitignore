@@ -1,0 +1,8 @@
+node_modules
+activity_whiskey
+auth_backup
+auth_whiskey
+number_ignores
+data
+package-lock.json
+.env

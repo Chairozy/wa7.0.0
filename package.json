@@ -1,0 +1,32 @@
+{
+  "name": "wa7.0.0",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "axios": "^1.12.2",
+    "baileys": "^7.0.0-rc.6",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-fileupload": "^1.5.2",
+    "fs": "^0.0.1-security",
+    "mime-types": "^3.0.1",
+    "moment": "^2.30.1",
+    "mongodb": "^6.20.0",
+    "mysql2": "^3.15.3",
+    "node-cache": "^5.1.2",
+    "pm2": "^6.0.13",
+    "qrcode": "^1.5.4",
+    "sequelize": "^6.37.7",
+    "socket.io": "^4.8.1",
+    "socket.io-stream": "^0.9.1",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
+  }
+}
