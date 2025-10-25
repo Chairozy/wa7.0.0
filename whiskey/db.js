@@ -1,12 +1,16 @@
 require('dotenv').config({path:__dirname+'/./../.env'});
 
 const { Sequelize, Model, DataTypes } = require('sequelize');
+
 const sequelize = new Sequelize(
-	process.env.DB_DATABASE, process.env.DB_USERNAME, process.env.DB_PASSWORD,
+	...(process.env.DB_LOCAL
+	? [process.env.DBL_DATABASE, process.env.DBL_USERNAME, process.env.DBL_PASSWORD]
+	: [process.env.DB_DATABASE, process.env.DB_USERNAME, process.env.DB_PASSWORD]),
 	{
 		define : { underscored : true },
-		host: process.env.DB_HOST,
-		dialect: process.env.DB_CONNECTION, /* one of 'mysql' | 'mariadb' | 'postgres' | 'mssql' */
+		host: process.env.DB_LOCAL ? process.env.DBL_HOST : process.env.DB_HOST,
+		port: process.env.DB_LOCAL ? process.env.DBL_PORT : process.env.DB_PORT,
+		dialect: process.env.DB_LOCAL ? process.env.DBL_CONNECTION : process.env.DB_CONNECTION, /* one of 'mysql' | 'mariadb' | 'postgres' | 'mssql' */
 		dialectOptions: {
 			multipleStatements: true
 		},

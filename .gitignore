@@ -6,3 +6,4 @@ number_ignores
 data
 package-lock.json
 .env
+public
