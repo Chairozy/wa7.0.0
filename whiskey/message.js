@@ -32,6 +32,10 @@ function useMessage(whatsapp) {
     }
     
     async function send(number, content, type = null) {
+        // WAPresence = 'unavailable' | 'available' | 'composing' | 'recording' | 'paused';
+        await whatsapp.conn.sendPresenceUpdate('composing', number);
+        await (new Promise(r => setTimeout(r, 1800)));
+        await whatsapp.conn.sendPresenceUpdate('available', number);
         const {text, mentions} = content
         switch (type == null ? content.type : type) {
             case 'location':
@@ -41,7 +45,7 @@ function useMessage(whatsapp) {
                 return whatsapp.conn.sendMessage(number, content.contex, content.options)
             case 'message':
             case 'text':
-                return whatsapp.conn.sendMessage(number, {text, ...(mentions.length > 0 ? {mentions} : {}), ...(content.contex || {}) }, content.options);
+                return whatsapp.conn.sendMessage(number, {text, ...(mentions && mentions.length > 0 ? {mentions} : {}), ...(content.contex || {}) }, content.options);
             case 'file':
             case 'media':
                 let split_name = content.file.name.split("."),

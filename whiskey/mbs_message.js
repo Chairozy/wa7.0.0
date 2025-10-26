@@ -46,8 +46,9 @@ function useMBSMessage (whatsapp, service, user) {
 
         async createContent () {
             const messageMediaSentLog = await this.messageSentLog.getMessageMediaSentLog(),
-                has_generated = this.messageSentLog.generated_content && typeof this.messageSentLog.generated_content === 'object' && !Array.isArray(this.messageSentLog.generated_content),
-                contentKeys = has_generated ? Object.keys(this.messageSentLog.generated_content) : [];
+                generated_content = this.messageSentLog.generated_content && JSON.parse(this.messageSentLog.generated_content),
+                has_generated = generated_content && typeof generated_content === 'object' && !Array.isArray(generated_content),
+                contentKeys = has_generated ? Object.keys(generated_content) : [];
 
             if (messageMediaSentLog) {
                 if (!this.fileData) {
@@ -58,14 +59,15 @@ function useMBSMessage (whatsapp, service, user) {
                     data: this.fileData,
                     mimetype: mime.lookup(messageMediaSentLog.name)
                 };
-                return {text: this.messageSentLog.message, type: 'media', file: file, ...(contentKeys.length > 0 ? {contex: this.messageSentLog.generated_content} : {})}
+                return {text: this.messageSentLog.message, type: 'media', file: file, ...(contentKeys.length > 0 ? {contex: generated_content} : {})}
             }else{
                 if (has_generated && contentKeys.includes('contacts')) {
-                    return {contex: this.messageSentLog.generated_content, type : 'contacts'}
+                    return {contex: generated_content, type : 'contacts'}
                 }else if (has_generated && contentKeys.includes('location')){
-                    return {contex: this.messageSentLog.generated_content, type : 'location'}
+                    return {contex: generated_content, type : 'location'}
                 }else{
-                    return {text: this.messageSentLog.message, type: 'text', ...(contentKeys.length > 0 ? {contex: this.messageSentLog.generated_content} : {})}
+                    console.log({conlen: contentKeys.length})
+                    return {text: this.messageSentLog.message, type: 'text', ...(contentKeys.length > 0 ? {contex: generated_content} : {})}
                 }
             }
         }
@@ -139,7 +141,7 @@ function useMBSMessage (whatsapp, service, user) {
                 while(this.numbers.length > 0 && !this.process.abort) {
                     const messageNumberSentLog = this.numbers[n];
                     if (messageNumberSentLog) {
-                        first_sent && !this.hasParallel && await office.parallelPromise();
+                        !first_sent && !this.hasParallel && await office.parallelPromise();
                         first_sent = false;
                         // if ((user.credits - service.cost_per_message) > 0.00) {
                             console.log("proses kirim");

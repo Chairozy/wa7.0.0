@@ -553,42 +553,42 @@ app.post("/api/message/send", async (req, res) => {
             }
             return {contacts: {contacts: contact}}
         }else{
-            rawContent = {};
-            rawContent.buttons = req.body.buttons || req.query.buttons
-            if (rawContent.buttons && !Array.isArray(rawContent.buttons) && typeof rawContent.buttons === 'string') rawContent.buttons = [rawContent.buttons];
-            rawContent.footer = req.body.footer || req.query.footer
-            rawContent.title = req.body.title || req.query.title
-            if (req.is('application/json')) {
-                rawContent.templateButtons = req.body.templateButtons || req.query.templateButtons
-                rawContent.list = req.body.list || req.query.list
-            }
-			const attribute = JSON.parse(JSON.stringify(rawContent));
-			const result = {}
-			try {
-				for(let i in attribute) {
-					if (!attribute[i]) {
-						delete attribute[i]
-					}else if (i == 'title'){
-						result.title = mbsMessage.messager.validationTitle(attribute[i]);
-					}else if (i == 'footer'){
-						result.footer = mbsMessage.messager.validationFooter(attribute[i]);
-					}else if (i == 'buttons'){
-						result.buttons = mbsMessage.messager.createButton(attribute[i]);
-					}else if(i == 'templateButtons') {
-						result.templateButtons = mbsMessage.messager.createTemplateButtons(attribute[i]);
-					}else if(i == 'list') {
-						let {sections, buttonText} = mbsMessage.messager.createList(attribute[i]);
-						result.sections = sections;
-						result.buttonText = buttonText;
+					rawContent = {};
+					rawContent.buttons = req.body.buttons || req.query.buttons
+					if (rawContent.buttons && !Array.isArray(rawContent.buttons) && typeof rawContent.buttons === 'string') rawContent.buttons = [rawContent.buttons];
+					rawContent.footer = req.body.footer || req.query.footer
+					rawContent.title = req.body.title || req.query.title
+					if (req.is('application/json')) {
+						rawContent.templateButtons = req.body.templateButtons || req.query.templateButtons
+						rawContent.list = req.body.list || req.query.list
 					}
-				}
-			}catch(e) {
-				console.log(e)
-				let isErrorString = typeof e === 'string'
-				res.status(isErrorString ? 400 : 500).json({ message: isErrorString ? e : 'Unknown Problem', code: isErrorString ? 11 : 0 });
-				return;
-			}
-            return Object.keys(result).length > 0 ? result : true;
+					const attribute = JSON.parse(JSON.stringify(rawContent));
+					const result = {}
+					try {
+						for(let i in attribute) {
+							if (!attribute[i]) {
+								delete attribute[i]
+							}else if (i == 'title'){
+								result.title = mbsMessage.messager.validationTitle(attribute[i]);
+							}else if (i == 'footer'){
+								result.footer = mbsMessage.messager.validationFooter(attribute[i]);
+							}else if (i == 'buttons'){
+								result.buttons = mbsMessage.messager.createButton(attribute[i]);
+							}else if(i == 'templateButtons') {
+								result.templateButtons = mbsMessage.messager.createTemplateButtons(attribute[i]);
+							}else if(i == 'list') {
+								let {sections, buttonText} = mbsMessage.messager.createList(attribute[i]);
+								result.sections = sections;
+								result.buttonText = buttonText;
+							}
+						}
+					}catch(e) {
+						console.log(e)
+						let isErrorString = typeof e === 'string'
+						res.status(isErrorString ? 400 : 500).json({ message: isErrorString ? e : 'Unknown Problem', code: isErrorString ? 11 : 0 });
+						return;
+					}
+					return Object.keys(result).length > 0 ? result : true;
         }
     })()
     if (!generatedContent) return;
@@ -617,11 +617,11 @@ app.post("/api/message/send", async (req, res) => {
 	}
 
 	const messageSentLog = await service.createMessageSentLog({
-        message: req.body.text || req.query.text || '',
-				event: 'api_send_message',
-        raw_content: generatedContent === true || !generatedContent ? null : rawContent,
-        generated_content: generatedContent === true || !generatedContent ? null : generatedContent,
-				processed_messages: 1,
+		message: req.body.text || req.query.text || '',
+		event: 'api_send_message',
+		raw_content: generatedContent === true || !generatedContent ? null : rawContent,
+		generated_content: generatedContent === true || !generatedContent ? null : generatedContent,
+		processed_messages: 1,
 	});
 
 	await service.reload();
@@ -641,13 +641,13 @@ app.post("/api/message/send", async (req, res) => {
 		}
 	}
 
-    try {
-        if (req.files != null || dataFile) {
+	try {
+		if (req.files != null || dataFile) {
 			if (dataFile) {
 				content.file = {...dataFile}
 			}else if (req.files.file !== undefined) {
 				content.file = req.files.file;
-            } else if (req.files.image !== undefined) {
+						} else if (req.files.image !== undefined) {
 				content.file = req.files.image;
 			}
 			if (content.file) {
@@ -671,7 +671,7 @@ app.post("/api/message/send", async (req, res) => {
 					url: hostUrl+':'+service.session+'/'+mediaUrlPrefix+'/'+filepath
 				});
 			}
-        }
+		}
 
 		// if (!limitRequest.canAccess()) {
 		// 	const message = "Batasan 10 Permintaan per 30 detik telah tercapai";
