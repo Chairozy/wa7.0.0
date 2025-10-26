@@ -1,7 +1,34 @@
 const office = {
     //prop queue task stack
     queue : [],
-    process: null,
+    process: new Map(),
+    promises: [],
+
+    get hasParallel() {
+        return this.promises.length > 0;
+    },
+    
+    randomTicks(min = 10, max = 17, ms = 1000) {
+        min = Math.ceil(min);
+        max = Math.floor(max);
+        return (Math.floor(Math.random() * (max - min + 1)) + min) * ms;
+    },
+
+    timeoutPromise() {
+        if (!this.hasParallel) return;
+        setTimeout(() => {
+            const resolve = this.promises.shift();
+            if (typeof resolve == 'function') resolve();
+        }, this.randomTicks())
+    },
+
+    parallelPromise () {
+        return new Promise(r => {
+            const currentlyEmpty = this.hasParallel;
+            this.promises.push(r);
+            if (currentlyEmpty) this.timeoutPromise();
+        });
+    },
 
     start() {
         const _t = this;
@@ -34,17 +61,19 @@ const office = {
     },
 
     async toProcess() {
-        if (this.process !== null) {
-            return this.process.id || undefined;
+        const currentProcessedIds = new Set([...this.process.keys()]);
+        if (this.process.size > 1) {
+            return [...this.process.keys()];            
         }
         if (typeof this.beforeProcess === 'function') {
             await this.beforeProcess();
             this.beforeProcess = null;
         }
-        const nonscheduled = this.queue.filter(item => item.date === undefined);
+        const nonscheduled = this.queue.filter(item => item.date === undefined || !currentProcessedIds.has(item.id));
         let picked = null;
         if (nonscheduled.length > 0) {
-            picked = this.process = nonscheduled[0]
+            picked = nonscheduled[0];
+            this.process.set(picked.id, picked);
             this.queue = this.queue.filter(item => item.id !== picked.id);
         }else{
             const now = new Date();
@@ -55,14 +84,15 @@ const office = {
                 const schedule = new Date(scheduled[0].date);
                 schedule.toLocaleString("id-ID", {timeZone: "Asia/Jakarta"});
                 if (now.getTime() >= schedule.getTime()) {
-                    picked = this.process = scheduled[0]
+                    picked = scheduled[0]
+                    this.process.set(picked.id, scheduled[0]);
                     this.queue = this.queue.filter(item => item.id !== picked.id);
                 }
             }
         }
         const _t = this
         if (picked !== null) this.command(picked.id, () => {
-            _t.process = null;
+            _t.process.delete(picked.id);
             _t.finish(picked.id)
             _t.toProcess();
         })
@@ -72,7 +102,7 @@ const office = {
 
     command (id, next) {next()},
 
-    finish (id) {}
+    finish (id) { console.log("finish:", id); }
 }
 
 exports.office = office;

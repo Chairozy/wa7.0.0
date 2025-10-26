@@ -120,12 +120,6 @@ function useMBSMessage (whatsapp, service, user) {
             messageNumberSentLog.response = 'Pesan Terkirim';
             messageNumberSentLog.save({fields: ["number", "status", "response"]});
         }
-
-        randomNumber(min, max) {
-            min = Math.ceil(min);
-            max = Math.floor(max);
-            return Math.floor(Math.random() * (max - min + 1)) + min;
-        }
     
         async play () {
             let n = 0,
@@ -145,7 +139,8 @@ function useMBSMessage (whatsapp, service, user) {
                 while(this.numbers.length > 0 && !this.process.abort) {
                     const messageNumberSentLog = this.numbers[n];
                     if (messageNumberSentLog) {
-                        first_sent ? (first_sent = false) : await (new Promise(r => setTimeout(r, this.randomNumber(15, 20) * 1000)));
+                        first_sent && !this.hasParallel && await office.parallelPromise();
+                        first_sent = false;
                         // if ((user.credits - service.cost_per_message) > 0.00) {
                             console.log("proses kirim");
                             let pending = await this.sent(messageNumberSentLog);
@@ -222,7 +217,7 @@ function useMBSMessage (whatsapp, service, user) {
                     },
                 });
             }
-            await (new Promise(r => setTimeout(r, this.randomNumber(15, 20) * 1000)));
+            await (new Promise(r => setTimeout(r, office.randomTicks())));
 
             this.destroy();
         }
@@ -261,10 +256,7 @@ function useMBSMessage (whatsapp, service, user) {
 
     office.command = async (id, next) => {
         const messageSentLog = await service.getMessageSentLog({ where : { id : id } });
-        (new Magazine(messageSentLog, office.process, next)).play();
-    }
-    office.finish = async (id) => {
-        console.log("finish:", office.process);
+        (new Magazine(messageSentLog, office.process.get(id), next)).play();
     }
 
     function insertQueue(id, date = undefined, notif = true) {
@@ -310,7 +302,7 @@ function useMBSMessage (whatsapp, service, user) {
                 queue.push({id: messageSentLogs[i].id, date: messageSentLogs[i].schedule || undefined})
             }
             setTimeout(() => {
-            console.log('replace')
+                console.log('replace')
                 office.replaceQueue(queue);
             }, 10000)
             // office.replaceQueue(queue);
@@ -319,8 +311,8 @@ function useMBSMessage (whatsapp, service, user) {
 
     function remove(id) {
         const result = office.remove(id);
-        if (office.process && office.process.id == id) {
-            office.process.abort = 'abort';
+        if (office.process.has(id)) {
+            office.process.get(id).abort = 'abort'
             return true;
         }
         return result;
