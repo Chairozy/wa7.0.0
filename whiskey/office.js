@@ -8,18 +8,19 @@ const office = {
         return this.promises.length > 0;
     },
     
-    randomTicks(min = 10, max = 17, ms = 1000) {
+    randomTicks(min = 10, max = 15, ms = 1000) {
         min = Math.ceil(min);
         max = Math.floor(max);
         return (Math.floor(Math.random() * (max - min + 1)) + min) * ms;
     },
 
-    timeoutPromise() {
+    async timeoutPromise() {
         if (!this.hasParallel) return;
-        setTimeout(() => {
-            const resolve = this.promises.shift();
-            if (typeof resolve == 'function') resolve();
-        }, this.randomTicks())
+        while (this.hasParallel) {
+            await (new Promise(r => setTimeout(r, this.randomTicks())))
+            this.promises.shift()?.();
+            this.promises.shift()?.();
+        }
     },
 
     parallelPromise () {
