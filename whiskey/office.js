@@ -27,7 +27,7 @@ const office = {
 
     parallelPromise () {
         return new Promise(r => {
-            const currentlyEmpty = this.hasParallel;
+            const currentlyEmpty = !this.hasParallel;
             this.promises.push(r);
             if (currentlyEmpty) this.timeoutPromise();
         });
