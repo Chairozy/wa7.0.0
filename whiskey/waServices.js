@@ -1,8 +1,7 @@
 require('dotenv').config({path:__dirname+'/./../.env'});
 const argv = process.argv.slice(2);
 
-const makeWASocket = require('baileys').default;
-const { useMultiFileAuthState , DisconnectReason, isJidGroup } = require('baileys');
+let makeWASocket, useMultiFileAuthState, DisconnectReason, isJidGroup;
 const QRCode = require('qrcode');
 const fs = require('fs');
 const mime = require("mime-types");
@@ -1059,6 +1058,12 @@ io.on("connection", function (socket) {
 });
 
 (async () => {
+	const { default: defa } = await import('baileys'); // Dynamic import of an ESM module
+	makeWASocket = defa;
+	const { useMultiFileAuthState: a1 , DisconnectReason: a2, isJidGroup: a3 } = await import('baileys');
+	useMultiFileAuthState = a1;
+	DisconnectReason = a2;
+	isJidGroup = a3;
 	service = (await WhatsappService.findByPk(argv[0]));
 	user = await service.getUser();
 	if (service === null || user === null) {
