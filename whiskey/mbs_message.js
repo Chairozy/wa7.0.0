@@ -140,7 +140,12 @@ function useMBSMessage (whatsapp, service, user) {
                 while(this.numbers.length > 0 && !this.process.abort) {
                     const messageNumberSentLog = this.numbers[n];
                     if (messageNumberSentLog) {
-                        !first_sent && !this.hasParallel && await office.parallelPromise();
+                        if (first_sent && !this.hasParallel) {
+                        }else if (!first_sent){
+                            await office.parallelPromise();
+                        }else{
+                            await office.parallelPromise();
+                        }
                         first_sent = false;
                         // if ((user.credits - service.cost_per_message) > 0.00) {
                             console.log("proses kirim");

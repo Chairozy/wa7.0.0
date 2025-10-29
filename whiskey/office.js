@@ -18,8 +18,10 @@ const office = {
         if (!this.hasParallel) return;
         while (this.hasParallel) {
             await (new Promise(r => setTimeout(r, this.randomTicks())))
-            this.promises.shift()?.();
-            this.promises.shift()?.();
+            const resolve = this.promises.shift();
+            if (typeof resolve === 'function') resolve();
+            const resolve2 = this.promises.shift();
+            if (typeof resolve2 === 'function') resolve2();
         }
     },
 

@@ -953,7 +953,6 @@ async function connect () {
 		}else if (qr) {
 			service.phone_auth = null;
 			service.save({fields: ["phone_auth"]})
-			console.log(await QRCode.toString(qr, {type:'terminal'}))
 			if (timerClose == null && sockets.guest.length <= 0) {
 				setAutoClose("offline");
 			}
