@@ -1,7 +1,7 @@
 require('dotenv').config({path:__dirname+'/./../.env'});
 const argv = process.argv.slice(2);
 
-let makeWASocket, useMultiFileAuthState, DisconnectReason, isJidGroup;
+let makeWASocket, useMultiFileAuthState, DisconnectReason;
 const QRCode = require('qrcode');
 const fs = require('fs');
 const mime = require("mime-types");
@@ -111,7 +111,7 @@ app.post("/api/group/all", async (req, res) => {
 			.then((groups) => {
 				let ids = []
 				for (let group in groups) {
-					if (isJidGroup(groups[group].id)) {
+					if (whatsapp.isJidGroup(groups[group].id)) {
 						let {id, subject} = groups[group] 
 						ids.push({id, subject})
 					}
@@ -1060,10 +1060,12 @@ io.on("connection", function (socket) {
 (async () => {
 	const { default: defa } = await import('baileys'); // Dynamic import of an ESM module
 	makeWASocket = defa;
-	const { useMultiFileAuthState: a1 , DisconnectReason: a2, isJidGroup: a3 } = await import('baileys');
+	const { useMultiFileAuthState: a1 , DisconnectReason: a2, isJidGroup: a3, downloadMediaMessage: a4 } = await import('baileys');
 	useMultiFileAuthState = a1;
 	DisconnectReason = a2;
-	isJidGroup = a3;
+	whatsapp.isJidGroup = a3;
+	whatsapp.downloadMediaMessage = a4;
+
 	service = (await WhatsappService.findByPk(argv[0]));
 	user = await service.getUser();
 	if (service === null || user === null) {

@@ -1,6 +1,3 @@
-const { downloadMediaMessage } = require('baileys');
-const fs = require('fs');
-
 const ss = require('socket.io-stream');
 
 const { filterMapData } = require('./localBuffer');
@@ -76,7 +73,7 @@ exports.useChatSocket = (io, whatsapp) => {
         
             ss(socket).on('data-file', function (stream, msg) {
                 if (whatsapp.stating !== 'online' || !service.feature_whatsapp_chat_history) return;
-                downloadMediaMessage(msg, 'stream', {}, {
+                whatsapp.downloadMediaMessage(msg, 'stream', {}, {
                     logger: emptyLogger,
                     reuploadRequest: whatsapp.conn.updateMediaMessage
                 }).then(streamFile => {

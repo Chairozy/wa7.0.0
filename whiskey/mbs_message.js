@@ -5,7 +5,6 @@ const mime = require("mime-types");
 const fs = require('fs');
 const { Op, Sequelize } = require("sequelize");
 const axios = require('axios');
-const { downloadMediaMessage, isJidGroup } = require('baileys');
 const moment = require('moment')
 const { sequelize } = require("./db");
 const { useSqlTrack } = require("./activity");
@@ -517,7 +516,7 @@ function useMBSMessage (whatsapp, service, user) {
                                 messager.send(remoteJid, {text: text_reply, mentions: []}, 'text')
                                 .then(res => {
                                     const stanzaKey = {...res.key}
-                                    if(isJidGroup(stanzaKey.remoteJid)) {
+                                    if(whatsapp.isJidGroup(stanzaKey.remoteJid)) {
                                         stanzaKey.participant = self_phone
                                     }
                                     const stanza = {
@@ -664,7 +663,7 @@ function useMBSMessage (whatsapp, service, user) {
                         }
                         file_name = file_path+"/"+full_name;
     
-                        buffer = await downloadMediaMessage(
+                        buffer = await whatsapp.downloadMediaMessage(
                             it, 'buffer',
                         ).catch(err => null);
     
@@ -690,7 +689,7 @@ function useMBSMessage (whatsapp, service, user) {
                     if (file) content.file = file;
 
                     // forwards
-                    const jidGroup = isJidGroup(remoteJid);
+                    const jidGroup = whatsapp.isJidGroup(remoteJid);
 
                     const remoteId = jidGroup ? null : remoteJid.split("@")[0];
                     const hiddenPhone = jidGroup ? null : remoteId.substring(0, 5) + " * * * * " + remoteId.substring(remoteId.length - 3);
@@ -782,7 +781,7 @@ function useMBSMessage (whatsapp, service, user) {
                                     messager.send(number, content, is_location ? 'location' : (is_contact ? 'contact' : (is_media ? 'file' : 'text')))
                                     .then(res => {
                                         const stanzaKey = {...res.key}
-                                        if(isJidGroup(stanzaKey.remoteJid)) {
+                                        if(whatsapp.isJidGroup(stanzaKey.remoteJid)) {
                                             stanzaKey.participant = self_phone
                                         }
                                         const stanza = {
@@ -906,7 +905,7 @@ function useMBSMessage (whatsapp, service, user) {
                         }
                         file_name = file_path+"/"+full_name;
     
-                        buffer = await downloadMediaMessage(
+                        buffer = await whatsapp.downloadMediaMessage(
                             it, 'buffer',
                         ).catch(err => null);
     
@@ -932,7 +931,7 @@ function useMBSMessage (whatsapp, service, user) {
                     if (file) content.file = file;
     
                     // forwards
-                    const jidGroup = isJidGroup(remoteJid);
+                    const jidGroup = whatsapp.isJidGroup(remoteJid);
                     if (is_reply) {
                         let contact = (forwardMessageNumberSentLog.messageSentLog.forward_sender_id
                             ? forwardSender.forwardReceivers.find((receiver) => receiver.number == remoteJid)
@@ -1136,7 +1135,7 @@ function useMBSMessage (whatsapp, service, user) {
                                         messager.send(number, content, is_location ? 'location' : (is_contact ? 'contact' : (is_media ? 'file' : 'text')))
                                         .then(res => {
                                             const stanzaKey = {...res.key}
-                                            if(isJidGroup(stanzaKey.remoteJid)) {
+                                            if(whatsapp.isJidGroup(stanzaKey.remoteJid)) {
                                                 stanzaKey.participant = self_phone
                                             }
                                             const stanza = {

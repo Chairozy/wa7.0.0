@@ -1,6 +1,3 @@
-const { isJidGroup } = require('baileys');
-const { MessageNumberSentLog } = require("./db");
-
 function useMessage(whatsapp) {
 
     async function checkDestination(number) {
@@ -8,7 +5,7 @@ function useMessage(whatsapp) {
         if (whatsapp.stating == 'online') {
             const tempNumber = number.split("@")[0];
             if (!tempNumber || (typeof tempNumber == 'string' && tempNumber.length < 6)) return false;
-            if (isJidGroup(number)) {
+            if (whatsapp.isJidGroup(number)) {
                 const groups = await whatsapp.conn.groupMetadata(number).catch(() => {});
                 console.log("after fetch group")
                 if (groups) {
