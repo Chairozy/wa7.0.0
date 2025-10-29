@@ -15,7 +15,7 @@ const axios = require('axios')
 const bodyParser = require('body-parser')
 
 const hostUrl = 'https://api.whatsapp.maestrobyte.com';
-const waServerPath = '/opt/whatsapp_mbs/whiskey/waServices.js';
+const waServerPath = '/opt/baileys-whiskey-v7/whiskey/waServices.js';
 function array_diff (arr1, arr2) {
     return arr1
     .filter(x => !arr2.includes(x))
