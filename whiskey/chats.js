@@ -26,6 +26,7 @@ exports.useChatSocket = (io, whatsapp) => {
         }
     
         conn.ev.process((map) => {
+            return // block feaeture
             for (const event in map) {
                 append(event, map[event])
             }
@@ -52,6 +53,7 @@ exports.useChatSocket = (io, whatsapp) => {
     }
 
     function bindIoChat (service, mbsMessage) {
+        return // block feaeture
         ioChat.use(async (socket, next) => {
             await service.reload();
             next(service.feature_whatsapp_chat_history ? undefined : new Error("Feature has been Disabled"))

@@ -900,8 +900,8 @@ async function connect () {
 		return makeWASocket({
 			browser: ["MBS Messaging", "Google Chrome", "4.0.0"],
 			auth: state,
-			downloadHistory: true,
-			syncFullHistory: true,
+			// downloadHistory: true,
+			// syncFullHistory: true,
 			logger: emptyLogger,
 			//getMessage
 		})
