@@ -32,7 +32,6 @@ function useMessage(whatsapp) {
         // WAPresence = 'unavailable' | 'available' | 'composing' | 'recording' | 'paused';
         await whatsapp.conn.sendPresenceUpdate('composing', number);
         await (new Promise(r => setTimeout(r, 1800)));
-        await whatsapp.conn.sendPresenceUpdate('available', number);
         const {text, mentions} = content
         switch (type == null ? content.type : type) {
             case 'location':

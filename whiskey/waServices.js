@@ -1003,30 +1003,30 @@ async function connect () {
 			}
 		}
 	})
-//	conn.ev.on('groups.upsert', async (data) => {
-//		const myAuthPhone = conn.user.id.replace(/:\d*@/g, '@')
-//		for(let i in data) {
-//			await upsert(GroupContact, {name: data[i].subject, number: data[i].id, whatsapp_auth: myAuthPhone}, {whatsapp_auth: myAuthPhone, number: data[i].id})
-//		}
-//    })
-//    conn.ev.on('groups.update', async (data) => {
-//		const myAuthPhone = conn.user.id.replace(/:\d*@/g, '@')
-//		for(let i in data) {
-//			await upsert(GroupContact, {name: data[i].subject, number: data[i].id, whatsapp_auth: myAuthPhone}, {whatsapp_auth: myAuthPhone, number: data[i].id})
-//		}
-//    })
-//    conn.ev.on('group-participants.update', async (data) => {
-//		const myAuthPhone = conn.user.id.replace(/:\d*@/g, '@')
-//		if (data.action === 'remove' && data.participants.includes(myAuthPhone)) {
-//			GroupContact
-//			.findOne({ where: {whatsapp_auth: myAuthPhone, number: data.id} })
-//			.then(function(obj) {
-//				if(obj) {
-//					obj.destroy();
-//				}
-//			});
-//		}
-//    })
+	conn.ev.on('groups.upsert', async (data) => {
+		const myAuthPhone = conn.user.id.replace(/:\d*@/g, '@')
+		for(let i in data) {
+			await upsert(GroupContact, {name: data[i].subject, number: data[i].id, whatsapp_auth: myAuthPhone}, {whatsapp_auth: myAuthPhone, number: data[i].id})
+		}
+	})
+	conn.ev.on('groups.update', async (data) => {
+		const myAuthPhone = conn.user.id.replace(/:\d*@/g, '@')
+		for(let i in data) {
+			await upsert(GroupContact, {name: data[i].subject, number: data[i].id, whatsapp_auth: myAuthPhone}, {whatsapp_auth: myAuthPhone, number: data[i].id})
+		}
+	})
+	conn.ev.on('group-participants.update', async (data) => {
+		const myAuthPhone = conn.user.id.replace(/:\d*@/g, '@')
+		if (data.action === 'remove' && data.participants.includes(myAuthPhone)) {
+			GroupContact
+			.findOne({ where: {whatsapp_auth: myAuthPhone, number: data.id} })
+			.then(function(obj) {
+				if(obj) {
+					obj.destroy();
+				}
+			});
+		}
+	})
 	conn.ev.on('messages.upsert', async (data) => {
 		mbsMessage.forward(data);
 	})

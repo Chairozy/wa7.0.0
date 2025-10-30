@@ -72,7 +72,7 @@ const office = {
             await this.beforeProcess();
             this.beforeProcess = null;
         }
-        const nonscheduled = this.queue.filter(item => item.date === undefined || !currentProcessedIds.has(item.id));
+        const nonscheduled = this.queue.filter(item => item.date === undefined && !currentProcessedIds.has(item.id));
         let picked = null;
         if (nonscheduled.length > 0) {
             picked = nonscheduled[0];
@@ -81,7 +81,7 @@ const office = {
         }else{
             const now = new Date();
             now.toLocaleString("id-ID", {timeZone: "Asia/Jakarta"});
-            const scheduled = this.queue.filter(item => item.date !== undefined)
+            const scheduled = this.queue.filter(item => item.date !== undefined && !currentProcessedIds.has(item.id))
                 .sort((a, b) => (new Date(a.date)).getTime() - (new Date(b.date)).getTime());
             if (scheduled.length > 0) {
                 const schedule = new Date(scheduled[0].date);
