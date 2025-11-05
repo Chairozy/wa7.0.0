@@ -3,6 +3,7 @@ const office = {
     queue : [],
     process: new Map(),
     promises: [],
+    firstParallel: false,
 
     get hasParallel() {
         return this.promises.length > 0;
@@ -46,7 +47,11 @@ const office = {
     },
 
     add(id, date = undefined) {
-        this.queue.push({id, date: date || undefined});
+        if (typeof id === "string") {
+            this.queue.push({id, date: date || undefined});
+        }else if(typeof id === "object" && id.id && id.with_message_id) {
+            this.queue.push({...id, date: date || undefined});
+        }
     },
 
     replaceQueue(queue) {
@@ -65,7 +70,7 @@ const office = {
 
     async toProcess() {
         const currentProcessedIds = new Set([...this.process.keys()]);
-        if (this.process.size > 1) {
+        if (this.process.size > 0) {
             return [...this.process.keys()];            
         }
         if (typeof this.beforeProcess === 'function') {
@@ -77,7 +82,7 @@ const office = {
         if (nonscheduled.length > 0) {
             picked = nonscheduled[0];
             this.process.set(picked.id, picked);
-            this.queue = this.queue.filter(item => item.id !== picked.id);
+            this.remove(picked.id);
         }else{
             const now = new Date();
             now.toLocaleString("id-ID", {timeZone: "Asia/Jakarta"});
@@ -89,14 +94,18 @@ const office = {
                 if (now.getTime() >= schedule.getTime()) {
                     picked = scheduled[0]
                     this.process.set(picked.id, scheduled[0]);
-                    this.queue = this.queue.filter(item => item.id !== picked.id);
+                    this.remove(picked.id);
                 }
             }
         }
+        if (picked !== null) this.pushProcess(picked.id);
+    },
+
+    pushProcess(pickedId) {
         const _t = this
-        if (picked !== null) this.command(picked.id, () => {
-            _t.process.delete(picked.id);
-            _t.finish(picked.id)
+        this.command(pickedId, () => {
+            _t.process.delete(pickedId);
+            _t.finish(pickedId)
             _t.toProcess();
         })
     },

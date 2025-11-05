@@ -252,17 +252,24 @@ app.post("/api/cs/notify", async (req, res) => {
 })
 app.post("/api/whatsapp/send", async (req, res) => {
 	try {
-		const id = req.body.id
+		const idd = req.body.id
 		console.log(req.body)
 		console.log(typeof req.body)
 		console.log(req.body.id)
-		if (!id) {
+		if (!idd) {
 			res.status(400).json({ message: "Message id is invalid", code: 200 });
 		}else{
 			await service.reload();
-			const messageSentLog = await service.getMessageSentLog({ where : { id : id } });
+			const [id, with_message_id] = idd.split(";");
+			const messageSentLog = await service.getMessageSentLog({ where : { id } });
 			console.log(messageSentLog.schedule);
-			const result = await mbsMessage.insertQueue(messageSentLog.id, messageSentLog.schedule || undefined, messageSentLog.event === 'send_message')
+			if (with_message_id) {
+				console.log("A", {id, with_message_id})
+				await mbsMessage.insertQueue({id, with_message_id}, messageSentLog.schedule || undefined, false)
+			}else{
+				console.log("B", id)
+				await mbsMessage.insertQueue(id, messageSentLog.schedule || undefined, messageSentLog.event === 'send_message')
+			}
 			res.status(200).json({ message: "Insert Message Successfully", code: 100 });
 		}
 	}catch(e) {

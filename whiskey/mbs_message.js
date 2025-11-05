@@ -141,6 +141,9 @@ function useMBSMessage (whatsapp, service, user) {
                     const messageNumberSentLog = this.numbers[n];
                     if (messageNumberSentLog) {
                         if (first_sent && !this.hasParallel) {
+                            office.firstParallel = true;
+                        }else if (first_sent && office.firstParallel) {
+                            office.firstParallel = false;
                         }else if (!first_sent){
                             await office.parallelPromise();
                         }else{
@@ -262,11 +265,22 @@ function useMBSMessage (whatsapp, service, user) {
 
     office.command = async (id, next) => {
         const messageSentLog = await service.getMessageSentLog({ where : { id : id } });
-        (new Magazine(messageSentLog, office.process.get(id), next)).play();
+        const process = office.process.get(id);
+        if (process.with_message_id) {
+            office.process.set(process.with_message_id, {id: process.with_message_id, date: undefined});
+            office.remove(process.with_message_id);
+            office.pushProcess(process.with_message_id);
+        }
+        (new Magazine(messageSentLog, process, next)).play();
     }
 
     function insertQueue(id, date = undefined, notif = true) {
-        office.add(id, date);
+        if (typeof id === "string") {
+            office.add(id, date);
+        }else if(typeof id === "object" && id.id && id.with_message_id) {
+            office.add(id, date);
+            id = id.id;
+        }
         if (notif) {
             axios.post(`${hostUrl}:${5306}/api/cs/notify`, {
                 id: id,
@@ -303,9 +317,8 @@ function useMBSMessage (whatsapp, service, user) {
                 ]
             });
             console.log("IIINIIIIIII")
-            console.log(messageSentLogs.map(val => val.id))
             for(let i in messageSentLogs) {
-                queue.push({id: messageSentLogs[i].id, date: messageSentLogs[i].schedule || undefined})
+                queue.push({id: messageSentLogs[i].id, with_message_id: messageSentLogs[i].second_of_message_id, date: messageSentLogs[i].schedule || undefined})
             }
             setTimeout(() => {
                 console.log('replace')
@@ -318,7 +331,9 @@ function useMBSMessage (whatsapp, service, user) {
     function remove(id) {
         const result = office.remove(id);
         if (office.process.has(id)) {
-            office.process.get(id).abort = 'abort'
+            [...office.process.keys()].forEach((kid) => {
+                office.process.get(kid).abort = 'abort';
+            })
             return true;
         }
         return result;

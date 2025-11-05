@@ -130,7 +130,11 @@ MessageSentLog.init({
         autoIncrement: true,
         primaryKey: true
     },
-	whatsapp_service_id  : {
+	whatsapp_service_id : {
+		type: DataTypes.INTEGER,
+		allowNull : true
+	},
+	second_of_message_id : {
 		type: DataTypes.INTEGER,
 		allowNull : true
 	},
@@ -595,6 +599,11 @@ MessageSentLog.belongsTo(User, {
 	targetKey: "id",
 	as: "sender"
 });
+MessageSentLog.belongsTo(MessageSentLog, {
+	foreignKey: "second_of_message_id",
+	targetKey: "id",
+	as: "secondOfMessage"
+});
 MessageMediaSentLog.belongsTo(MessageSentLog, {
 	foreignKey: "message_sent_log_id",
 	targetKey: "id",
@@ -736,6 +745,11 @@ WhatsappService.belongsTo(User, {
 	foreignKey: "admin_id",
 	targetKey: "id",
 	as: "user"
+});
+MessageSentLog.hasMany(MessageSentLog, {
+	foreignKey: "second_of_message_id",
+	sourceKey: "id",
+	as: "secondOfMessages"
 });
 MessageSentLog.hasMany(MessageNumberSentLog, {
 	foreignKey: "message_sent_log_id",
