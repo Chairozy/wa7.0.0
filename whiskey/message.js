@@ -78,7 +78,7 @@ function useMessage(whatsapp) {
 
     async function sanitizeLid(numlid) {
         if ((typeof numlid === "string" && numlid || "").endsWith('@lid')) {
-            return await whatsapp.conn.signalRepository.lidMapping.getPNForLID(numlid);
+            return (await whatsapp.conn.signalRepository.lidMapping.getPNForLID(numlid)).replace(/:\d*/g, '');
         }
         return numlid;
     }
