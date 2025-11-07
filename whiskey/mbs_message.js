@@ -402,7 +402,7 @@ function useMBSMessage (whatsapp, service, user) {
                     activity.updateChatTime("me", i.messageTimestamp)
                 }else{
                     const rawRemoteJid = "" + i.key.remoteJid;
-                    const remoteJid = rawRemoteJid.endsWith('@broadcast') && rawRemoteJid !== 'status@broadcast' && i.key.participant ? i.key.participant : rawRemoteJid;
+                    const remoteJid = rawRemoteJid.endsWith('@broadcast') && rawRemoteJid !== 'status@broadcast' && i.key.participant ? (await messager.sanitizeLid(i.key.participant)) : rawRemoteJid;
                     if (!remoteJid.endsWith("@s.whatsapp.net") && !remoteJid.endsWith("@g.us")) continue;
                     activity.updateChatTime(remoteJid, i.messageTimestamp)
                 }
@@ -490,7 +490,7 @@ function useMBSMessage (whatsapp, service, user) {
                     }
                     if (!i.key.fromMe) {
                         const rawRemoteJid = "" + i.key.remoteJid;
-                        const remoteJid = rawRemoteJid.endsWith('@broadcast') && rawRemoteJid !== 'status@broadcast' && i.key.participant ? i.key.participant : rawRemoteJid;
+                        const remoteJid = rawRemoteJid.endsWith('@broadcast') && rawRemoteJid !== 'status@broadcast' && i.key.participant ? (await messager.sanitizeLid(i.key.participant)) : rawRemoteJid;
                         if (!remoteJid.endsWith("@s.whatsapp.net") && !remoteJid.endsWith("@g.us")) continue;
 
                         const doBotReply = async (text_reply, send_event) => {
@@ -534,14 +534,14 @@ function useMBSMessage (whatsapp, service, user) {
                                 }
         
                                 messager.send(remoteJid, {text: text_reply, mentions: []}, 'text')
-                                .then(res => {
+                                .then(async res => {
                                     const stanzaKey = {...res.key}
                                     if(whatsapp.isJidGroup(stanzaKey.remoteJid)) {
                                         stanzaKey.participant = self_phone
                                     }
                                     const stanza = {
                                         send_json: {key: stanzaKey, message: reSchemaMessage(res.message)},
-                                        id_stanza: res.key.id
+                                        id_stanza: await messager.sanitizeLid(res.key.id)
                                     }
                                     insertNumberSentLog('success', remoteJid, 'Pesan Terkirim', stanza)
                                 }).catch(err => {
@@ -729,7 +729,7 @@ function useMBSMessage (whatsapp, service, user) {
                             event: 'out_forward_message',
                             generated_content : content.contex  || null,
                             forward_from : remoteJid,
-                            id_forward_from : i.key.id,
+                            id_forward_from : await messager.sanitizeLid(i.key.id),
                             source_json: {key: i.key, message: messagePayload},
                             out_forward_sender_id: sender ? sender.id : null,
                             processed_messages: localReceivers.length,
@@ -799,14 +799,14 @@ function useMBSMessage (whatsapp, service, user) {
         
                                 for(let number of validReciever) {
                                     messager.send(number, content, is_location ? 'location' : (is_contact ? 'contact' : (is_media ? 'file' : 'text')))
-                                    .then(res => {
+                                    .then(async res => {
                                         const stanzaKey = {...res.key}
                                         if(whatsapp.isJidGroup(stanzaKey.remoteJid)) {
                                             stanzaKey.participant = self_phone
                                         }
                                         const stanza = {
                                             send_json: {key: stanzaKey, message: reSchemaMessage(res.message)},
-                                            id_stanza: res.key.id
+                                            id_stanza: await messager.sanitizeLid(res.key.id)
                                         }
                                         insertNumberSentLog('success', number, 'Pesan Terkirim', stanza)
                                     }).catch(err => {
@@ -838,7 +838,7 @@ function useMBSMessage (whatsapp, service, user) {
                     }
                 }else{
                     const rawRemoteJid = "" + i.key.remoteJid;
-                    const remoteJid = rawRemoteJid.endsWith('@broadcast') && rawRemoteJid !== 'status@broadcast' && i.key.participant ? i.key.participant : rawRemoteJid;
+                    const remoteJid = rawRemoteJid.endsWith('@broadcast') && rawRemoteJid !== 'status@broadcast' && i.key.participant ? (await messager.sanitizeLid(i.key.participant)) : rawRemoteJid;
                     if (!remoteJid.endsWith("@s.whatsapp.net") && !remoteJid.endsWith("@g.us")) continue;
     
                     //reply
@@ -849,7 +849,7 @@ function useMBSMessage (whatsapp, service, user) {
                         if (keyMessage == 'messageContextInfo' || keyMessage == 'senderKeyDistributionMessage' || keyMessage == 'conversation') continue key;
                         if (!it.message[keyMessage]) continue key;
                         const contextInfo = it.message[keyMessage].contextInfo || {}
-                        if (contextInfo.quotedMessage && contextInfo.participant == self_phone) {
+                        if (contextInfo.quotedMessage && (await messager.sanitizeLid(contextInfo.participant)) == self_phone) {
                             forwardMessageNumberSentLog = await MessageNumberSentLog.findOne({where: {
                                 number: remoteJid,
                                 id_stanza: contextInfo.stanzaId
@@ -1084,7 +1084,7 @@ function useMBSMessage (whatsapp, service, user) {
                                 event: 'forward_message',
                                 generated_content : content.contex  || null,
                                 forward_from : remoteJid,
-                                id_forward_from : i.key.id,
+                                id_forward_from : await messager.sanitizeLid(i.key.id),
                                 source_json: is_reply ? null : {key: i.key, message: messagePayload},
                                 forward_sender_id: sender ? sender.id : null,
                                 processed_messages: localReceivers.length,
@@ -1153,14 +1153,14 @@ function useMBSMessage (whatsapp, service, user) {
             
                                     for(let number of validReciever) {
                                         messager.send(number, content, is_location ? 'location' : (is_contact ? 'contact' : (is_media ? 'file' : 'text')))
-                                        .then(res => {
+                                        .then(async res => {
                                             const stanzaKey = {...res.key}
                                             if(whatsapp.isJidGroup(stanzaKey.remoteJid)) {
                                                 stanzaKey.participant = self_phone
                                             }
                                             const stanza = {
                                                 send_json: {key: stanzaKey, message: reSchemaMessage(res.message)},
-                                                id_stanza: res.key.id
+                                                id_stanza: await messager.sanitizeLid(res.key.id)
                                             }
                                             insertNumberSentLog('success', number, 'Pesan Terkirim', stanza)
                                         }).catch(err => {

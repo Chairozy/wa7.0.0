@@ -76,6 +76,12 @@ function useMessage(whatsapp) {
         }
     }
 
+    async function sanitizeLid(numlid) {
+        if (numlid.endsWith('@lid')) {
+            return await whatsapp.conn.signalRepository.lidMapping.getPNForLID(numlid);
+        }
+        return numlid;
+    }
         
     function phoneNumberFormatter(number) {
         let formatted = number.replace(/^\s*|\s*$/g, '');
@@ -420,6 +426,7 @@ function useMessage(whatsapp) {
     }
 
     return {
+        sanitizeLid,
         checkDestination,
         send,
         phoneNumberFormatter,
