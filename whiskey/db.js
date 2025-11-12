@@ -103,6 +103,15 @@ WhatsappService.init({
 		type: DataTypes.CHAR,
 		allowNull : true
 	},
+    feature_custom_interval : {
+		type: DataTypes.BOOLEAN,
+	},
+    is_custom_interval : {
+		type: DataTypes.BOOLEAN,
+	},
+    custom_interval : {
+		type: DataTypes.CHAR,
+	},
     feature_whatsapp_chat_history : {
 		type: DataTypes.BOOLEAN,
 	},

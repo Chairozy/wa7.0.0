@@ -13,23 +13,23 @@ exports.useSqlTrack = function (dbName) {
     .then((contact) => {
       const momentTime = moment.unix(time)
       if (contact) {
-        if (momentTime.isAfter(contact.latest)) {
-          db.serialize(() => {
-            const stmt = db.prepare('INSERT OR REPLACE INTO `activity` (`latest`, `id`) VALUES (?, ?)');
-            const stringTime = momentTime.format("YYYY-MM-DD HH:mm:ss")
-            console.log("INSERT OR REPLACE ", stringTime, phone)
-            stmt.run(stringTime, phone);
-            stmt.finalize();
-          });
-        }
+        // if (momentTime.isAfter(contact.latest)) {
+        //   db.serialize(() => {
+        //     const stmt = db.prepare('INSERT OR REPLACE INTO `activity` (`latest`, `id`) VALUES (?, ?)');
+        //     const stringTime = momentTime.format("YYYY-MM-DD HH:mm:ss")
+        //     console.log("INSERT OR REPLACE ", stringTime, phone)
+        //     stmt.run(stringTime, phone);
+        //     stmt.finalize();
+        //   });
+        // }
       }else{
-        db.serialize(() => {
-          const stmt = db.prepare('INSERT INTO `activity` (`latest`, `id`) VALUES (?, ?)');
-          const stringTime = momentTime.format("YYYY-MM-DD HH:mm:ss")
-          console.log("INSERT ", stringTime, phone)
-          stmt.run(stringTime, phone);
-          stmt.finalize();
-        });
+        // db.serialize(() => {
+        //   const stmt = db.prepare('INSERT INTO `activity` (`latest`, `id`) VALUES (?, ?)');
+        //   const stringTime = momentTime.format("YYYY-MM-DD HH:mm:ss")
+        //   console.log("INSERT ", stringTime, phone)
+        //   stmt.run(stringTime, phone);
+        //   stmt.finalize();
+        // });
       }
     })
   }

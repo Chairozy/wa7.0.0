@@ -4,14 +4,19 @@ const office = {
     process: new Map(),
     promises: [],
     firstParallel: false,
+    interval_default: [10, 15],
+    service: null,
 
     get hasParallel() {
         return this.promises.length > 0;
     },
     
-    randomTicks(min = 10, max = 15, ms = 1000) {
-        min = Math.ceil(min);
-        max = Math.floor(max);
+    randomTicks(min = null, max = null, ms = 1000) {
+        let [interval_min, interval_max] = this.service.custom_interval.split(";");
+		interval_min = this.service.feature_custom_interval && this.service.is_custom_interval && parseInt(interval_min) || null;
+		interval_max = this.service.feature_custom_interval && this.service.is_custom_interval && parseInt(interval_max || interval_min) || null;
+        min = Math.ceil(interval_min || this.interval_default[0]);
+        max = Math.floor(interval_max || this.interval_default[1]);
         return (Math.floor(Math.random() * (max - min + 1)) + min) * ms;
     },
 
@@ -60,11 +65,16 @@ const office = {
 
     remove(id) {
         let found = false;
+        let with_item = null;
         this.queue = this.queue.filter(item => {
             const notMatch = item.id != id;
+            if (!notMatch) {with_item = item}
             if (!found && !notMatch) {found = true}
             return notMatch;
         });
+        if (with_item && with_item.with_message_id) {
+            this.queue = this.queue.filter(item => item.id != with_item.with_message_id)
+        }
         return found;
     },
 

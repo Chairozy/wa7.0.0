@@ -266,12 +266,12 @@ function useMBSMessage (whatsapp, service, user) {
     office.command = async (id, next) => {
         const messageSentLog = await service.getMessageSentLog({ where : { id : id } });
         const process = office.process.get(id);
+        (new Magazine(messageSentLog, process, next)).play();
         if (process.with_message_id) {
             office.process.set(process.with_message_id, {id: process.with_message_id, date: undefined});
             office.remove(process.with_message_id);
             office.pushProcess(process.with_message_id);
         }
-        (new Magazine(messageSentLog, process, next)).play();
     }
 
     function insertQueue(id, date = undefined, notif = true) {
@@ -280,7 +280,7 @@ function useMBSMessage (whatsapp, service, user) {
         }else if(typeof id === "object" && id.id && id.with_message_id) {
             office.add(id, date);
             id = id.id;
-        }
+        }else return;
         if (notif) {
             axios.post(`${hostUrl}:${5306}/api/cs/notify`, {
                 id: id,
@@ -314,6 +314,7 @@ function useMBSMessage (whatsapp, service, user) {
                 },
                 order: [
                     ['createdAt', 'ASC'],
+                    ['id', 'ASC']
                 ]
             });
             console.log("IIINIIIIIII")

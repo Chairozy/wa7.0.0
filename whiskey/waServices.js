@@ -23,6 +23,7 @@ const { useMBSMessage } = require("./mbs_message");
 const { exec } = require('child_process');
 const { Sequelize } = require('sequelize');
 const { useChatSocket } = require("./chats");
+const { office } = require("./office");
 
 let mbsMessage = {}
 //#region PreServer
@@ -1081,6 +1082,7 @@ io.on("connection", function (socket) {
 		//setInterval(() => {
 		//	store.writeToFile(`./store/${service.id}.json`)
 		//}, 10_000)
+		office.service = service;
 		mbsMessage = useMBSMessage(whatsapp, service, user)
 
 		process.on('message', function(packet) {
