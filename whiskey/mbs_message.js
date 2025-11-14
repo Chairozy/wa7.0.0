@@ -41,6 +41,8 @@ function useMBSMessage (whatsapp, service, user) {
             this.fileData = null;
             this.waiting_response = false;
             this.destroy = destroy;
+            this.now = null;
+            this.childs = [];
         }
 
         async createContent () {
@@ -122,19 +124,26 @@ function useMBSMessage (whatsapp, service, user) {
             messageNumberSentLog.save({fields: ["number", "status", "response"]});
         }
     
+        async updateMessageStartStatus() {
+            this.now = moment();
+            await service.reload();
+            this.content = await this.createContent();
+            let querySave = ['status'];
+            if (!this.messageSentLog.status) {
+                querySave.push('send_at');
+                this.messageSentLog.send_at = this.now.format('YYYY-MM-DD HH:mm:ss');
+            }
+            this.messageSentLog.status = 'process';
+            await this.messageSentLog.save({fields: querySave});
+        }
+
         async play () {
-            let n = 0,
-                now = moment();
+            let n = 0;
             if (!this.process.abort) {
-                await service.reload();
-                this.content = await this.createContent();
-                let querySave = ['status'];
-                if (!this.messageSentLog.status) {
-                    querySave.push('send_at');
-                    this.messageSentLog.send_at = now.format('YYYY-MM-DD HH:mm:ss');
+                await this.updateMessageStartStatus();
+                for (let ic = 0; ic < this.childs.length; ic++) {
+                    await this.childs[ic].updateMessageStartStatus();
                 }
-                this.messageSentLog.status = 'process';
-                await this.messageSentLog.save({fields: querySave});
                 await this.loadNumber();
                 let first_sent = true;
                 while(this.numbers.length > 0 && !this.process.abort) {
@@ -167,17 +176,14 @@ function useMBSMessage (whatsapp, service, user) {
                     n++;
                 }
             }
-            if (this.process.abort) {
-                const reason = this.abortReason[this.process.abort] || null;
-                await this.toAbortStatus(reason);
-                // if (this.process.abort == 'clear') {
-                //     office.replaceQueue([]);
-                // }
-                this.messageSentLog.status = 'abort';
-            }else{
-                this.messageSentLog.status = 'complete';
+            this.endPlay();
+        }
+
+        async endPlay() {
+            await this.updateMessageFinishStatus();
+            for (let ic = 0; ic < this.childs.length; ic++) {
+                await this.childs[ic].updateMessageFinishStatus();
             }
-            await this.messageSentLog.save({fields: ['status']});
 
             if (!user.is_subscription_service) {
                 const used = await MessageNumberSentLog.sum(
@@ -197,29 +203,29 @@ function useMBSMessage (whatsapp, service, user) {
                     }
                 });
                 if (latestCreditHistory) {
-                const refund = latestCreditHistory.amount_change_in_credits - used;
-                if (refund > 0) {
-                    await user.reload();
-                    const credit_before_changes = user.credits,
-                        amount_change_in_credits = refund,
-                        latest_credit = credit_before_changes + amount_change_in_credits;
-                    user.credits += amount_change_in_credits;
-                    await user.save({fields:["credits"]});
-                    await this.messageSentLog.createCreditHistory({
-                        user_id: user.id,
-                        event: 'refund',
-                        credit_before_changes,
-                        amount_change_in_credits,
-                        latest_credit
-                    });
-                }
+                    const refund = latestCreditHistory.amount_change_in_credits - used;
+                    if (refund > 0) {
+                        await user.reload();
+                        const credit_before_changes = user.credits,
+                            amount_change_in_credits = refund,
+                            latest_credit = credit_before_changes + amount_change_in_credits;
+                        user.credits += amount_change_in_credits;
+                        await user.save({fields:["credits"]});
+                        await this.messageSentLog.createCreditHistory({
+                            user_id: user.id,
+                            event: 'refund',
+                            credit_before_changes,
+                            amount_change_in_credits,
+                            latest_credit
+                        });
+                    }
                 }
             }
             if (this.messageSentLog.event == 'send_message') {
                 axios.post(`${hostUrl}:${5306}/api/cs/notify`, {
                     id: this.messageSentLog.id,
                     notif: 'end',
-                    now: now.format('YYYY-MM-DD HH:mm')
+                    now: this.now.format('YYYY-MM-DD HH:mm')
                 }, {
                     headers: {
                         authorization: '12345'
@@ -231,25 +237,34 @@ function useMBSMessage (whatsapp, service, user) {
             this.destroy();
         }
 
+        async updateMessageFinishStatus() {
+            if (this.process.abort) {
+                const reason = this.abortReason[this.process.abort] || null;
+                await this.toAbortStatus(reason);
+                // if (this.process.abort == 'clear') {
+                //     office.replaceQueue([]);
+                // }
+                this.messageSentLog.status = 'abort';
+            }else{
+                this.messageSentLog.status = 'complete';
+            }
+            await this.messageSentLog.save({fields: ['status']});
+        }
+
         async sent (messageNumberSentLog) {
             const number = messager.phoneNumberFormatter(messageNumberSentLog.number);
             messageNumberSentLog.number = number;
-	    if (typeof messageNumberSentLog.entity === 'string') {
+	        if (typeof messageNumberSentLog.entity === 'string') {
                 messageNumberSentLog.entity = JSON.parse(messageNumberSentLog.entity);
             }
             const found = await checkDestination(number);
             if (found === true) {
-                const content = {...this.content};
-                if (content.text && messageNumberSentLog.entity) {
-                    const {text, mentions} = await messager.extractMention(this.messageSentLog.message)
-                    content.text = text.replace(/{{\w}}/g, (x) => {
-                        return messageNumberSentLog.entity[x[2].toUpperCase().charCodeAt(0) - 65];
-                    });
-                    if (mentions) {
-                        content.mentions = mentions;
+                (async () => {
+                    await this.send(messageNumberSentLog);
+                    for (let ic = 0; ic < this.childs.length; ic++) {
+                        await this.childs[ic].send(messageNumberSentLog);
                     }
-                }
-                messager.send(number, content);
+                })()
                 await this.numberSuccess(messageNumberSentLog);
             } else if (found === false) {
                 await this.numberFailed(messageNumberSentLog);
@@ -261,16 +276,42 @@ function useMBSMessage (whatsapp, service, user) {
             }
             return false;
         }
+
+        async send (messageNumberSentLog) {
+            const content = {...this.content};
+            if (content.text && messageNumberSentLog.entity) {
+                const {text, mentions} = await messager.extractMention(this.messageSentLog.message)
+                content.text = text.replace(/{{\w}}/g, (x) => {
+                    return messageNumberSentLog.entity[x[2].toUpperCase().charCodeAt(0) - 65];
+                });
+                if (mentions) {
+                    content.mentions = mentions;
+                }
+            }
+            return messager.send(messageNumberSentLog.number, content);
+        }
     }
 
     office.command = async (id, next) => {
-        const messageSentLog = await service.getMessageSentLog({ where : { id : id } });
         const process = office.process.get(id);
-        (new Magazine(messageSentLog, process, next)).play();
         if (process.with_message_id) {
-            office.process.set(process.with_message_id, {id: process.with_message_id, date: undefined});
             office.remove(process.with_message_id);
-            office.pushProcess(process.with_message_id);
+            const messageSentLog = await service.getMessageSentLog({ where : { id : id } });
+            const messageSentLog2 = await service.getMessageSentLog({ where : { id : process.with_message_id } });
+            let magazine, child;
+            if (parseInt(process.id) < parseInt(process.with_message_id)) {
+                magazine = new Magazine(messageSentLog, process, next)
+                child = new Magazine(messageSentLog2, process);
+            }else{
+                magazine = new Magazine(messageSentLog2, process, next)
+                child = new Magazine(messageSentLog, process);
+            }
+            magazine.childs = [child]
+            magazine.play();
+        }else{
+            const messageSentLog = await service.getMessageSentLog({ where : { id : id } });
+            const magazine = new Magazine(messageSentLog, process, next);
+            magazine.play();
         }
     }
 
