@@ -699,7 +699,7 @@ app.post("/api/message/send", async (req, res) => {
 		if (user.is_subscription_service) {
 			const message = "Pesan Diproses";
 			await insertNumber();
-			const result = await mbsMessage.insertQueue(messageSentLog.id, messageSentLog.schedule || undefined, false)
+			const result = await mbsMessage.insertQueue(messageSentLog.id+"", messageSentLog.schedule || undefined, false)
 			res.status(200).json({ message: message });
 		}else{
 			if ((user.credits - cost_credits) < 0.00) {
@@ -722,7 +722,7 @@ app.post("/api/message/send", async (req, res) => {
 					latest_credit
 				});
 				await insertNumber();
-				const result = await mbsMessage.insertQueue(messageSentLog.id, messageSentLog.schedule || undefined, false)
+				const result = await mbsMessage.insertQueue(messageSentLog.id+"", messageSentLog.schedule || undefined, false)
 				res.status(200).json({ message: message });
 			}
 		}
