@@ -436,8 +436,8 @@ function useMBSMessage (whatsapp, service, user) {
 
     async function forward({ messages , type}) {
         function addressingModeIsLid(key, field = "remoteJid") {
-            const val = key[field + (key.addressingMode == 'lid' && "Alt" || "")];
-            return messager.sanitizeLid(val)
+            if (field === "remoteJid" && key[field].endsWith("@g.us")) return key[field];
+            return messager.sanitizeLid(key[field + (key.addressingMode == 'lid' && "Alt" || "")])
         }
         async function trackActivity () {
             for(let i of messages) {
