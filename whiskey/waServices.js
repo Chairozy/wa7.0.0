@@ -311,8 +311,7 @@ app.post("/api/whatsapp/silent", async (req, res) => {
 	process.exit(0);
 });
 app.post("/api/whatsapp/check", async (req, res) => {
-	await service.reload();
-	res.json({status: Boolean(service.phone_auth)}).sendStatus(200);
+	res.json({status: whatsapp.stating === 'online'}).sendStatus(200);
 });
 // let indexRequest = 0;
 // const limitRequest = {

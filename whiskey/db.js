@@ -130,7 +130,10 @@ WhatsappService.init({
 		feature_chat_bot_google : {
 		type: DataTypes.BOOLEAN,
 	},
-}, { sequelize, tableName : "whatsapp_services", modelName : "whatsapp_services" });
+		is_waha_system : {
+		type: DataTypes.BOOLEAN,
+	},
+}, { sequelize, tableName : "whatsapp_services", modelName : "whatsapp_services", defaultScope: { where: { is_waha_system: false } } });
 
 class MessageSentLog extends Model {}
 MessageSentLog.init({

@@ -203,7 +203,7 @@ function updateSqlite3 (msgs) {
 function start() {
     sequelize.query(
         "SELECT `wss`.`id` FROM `whatsapp_services` AS `wss` LEFT JOIN `users` ON `users`.`id` = `wss`.`admin_id` " +
-        "WHERE `wss`.`phone_auth` IS NOT NULL " +
+        "WHERE `wss`.`phone_auth` IS NOT NULL AND `wss`.`is_waha_system` = 0 " +
         "AND (" +
         "(`users`.`is_subscription_service` = 1 AND EXISTS (SELECT * FROM `subscriptions` WHERE `subscriptions`.`status` = 'paid' AND `subscriptions`.`user_id` = `wss`.`admin_id`)) " +
         "OR `users`.`is_subscription_service` = 0)",
@@ -241,7 +241,7 @@ pm2.connect(function() {
 
         sequelize.query(
             "SELECT `msls`.`id` FROM `whatsapp_services` AS `msls` " +
-"WHERE EXISTS (SELECT * FROM `users` WHERE `users`.`is_subscription_service` = 1 AND `users`.`id` > 17 AND `users`.`id` = `msls`.`admin_id`) " +
+"WHERE `msls`.`is_waha_system` = 0 AND EXISTS (SELECT * FROM `users` WHERE `users`.`is_subscription_service` = 1 AND `users`.`id` > 17 AND `users`.`id` = `msls`.`admin_id`) " +
 "AND NOT EXISTS (SELECT * FROM `subscriptions` WHERE `subscriptions`.`status` = 'paid' AND `subscriptions`.`user_id` = `msls`.`admin_id`)",
             { type: "SELECT" }
         ).then(WhatsappService => {
@@ -292,7 +292,7 @@ pm2.connect(function() {
             "`msls`.`status` = 'process' AND NOT EXISTS (SELECT * FROM `message_number_sent_logs` AS `mnsl` WHERE `mnsl`.`message_sent_log_id` = `msls`.`id` AND `mnsl`.`status` IS NOT NULL AND `mnsl`.`updated_at` > '"+nowLast5Minute+"')" +
         ")" +
     ") " +
-    "AND `wss`.`deleted_at` IS NULL " +
+    "AND `wss`.`deleted_at` IS NULL AND `wss`.`is_waha_system` = 0 " +
     // "AND EXISTS (" +
     // "SELECT `whatsapp_services`.* FROM `whatsapp_services` AS `wss` LEFT JOIN `users` ON `users`.`id` = `wss`.`admin_id` " +
     //     "WHERE `msls`.`whatsapp_service_id` = `wss`.`id` AND `wss`.`phone_auth` IS NOT NULL " +
