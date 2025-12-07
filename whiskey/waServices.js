@@ -303,12 +303,12 @@ app.post("/api/whatsapp/close", async (req, res) => {
 		await whatsapp.conn.logout().catch(err => {});
 	}
 	rmMultiFileAuthState();
-	process.exit(0);
+	exec('pm2 delete wa'+argv[0]);
 });
 
 app.post("/api/whatsapp/silent", async (req, res) => {
 	res.sendStatus(200);
-	process.exit(0);
+	exec('pm2 delete wa'+argv[0]);
 });
 app.post("/api/whatsapp/check", async (req, res) => {
 	res.json({status: whatsapp.stating === 'online'}).sendStatus(200);
@@ -1075,7 +1075,7 @@ io.on("connection", function (socket) {
 	service = (await WhatsappService.findByPk(argv[0]));
 	user = await service.getUser();
 	if (service === null || user === null) {
-		process.exit(0);
+		exec('pm2 delete wa'+argv[0]);
 	}else{
 		//store.readFromFile(`./store/${service.id}.json`)
 		//setInterval(() => {
